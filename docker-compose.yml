@@ -1,0 +1,44 @@
+version: '3.3'
+volumes:
+  data:
+services:
+  mysql:
+    build: './mysql/'
+    image: mysql:5.6
+    ports:
+      - "3306:3306"
+    volumes:
+      - data:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=1234
+      - MYSQL_DATABASE=users_db
+  phpmyadmin:
+    build: './phpmyadmin/'
+    image: phpmyadmin/phpmyadmin:latest
+    links:
+      - mysql
+    ports:
+      - 80:80
+    environment:
+      - PMA_ARBITRARY=1
+  php:
+    build: './php/'
+    networks:
+      - backend
+    volumes:
+      - ./public_html/:/var/www/html/
+  apache:
+    build: './apache/'
+    depends_on:
+      - php
+      - mysql
+    networks:
+      - frontend
+      - backend
+    ports:
+      - "8080:80"
+    volumes:
+      - ./public_html/:/var/www/html/
+networks:
+  frontend:
+  backend:
